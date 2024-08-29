@@ -28,17 +28,19 @@ button:hover {
     background-color: #0056b3;
 }
 
-.video-container {
+/* Center the webcam box and style it */
+#webcam-box {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 640px;
-    height: 480px;
-    border: 2px solid #333;
-    background-color: black;
+    height: 400px;
+    width: 600px;
+    margin: 20px auto;
+    border: 2px solid #000;
 }
 
-video {
+/* Ensure the video in the webcam box takes up the entire space */
+#webcam {
     width: 100%;
     height: 100%;
     object-fit: cover;
