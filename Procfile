@@ -1,3 +1,4 @@
-web: pip install -r requirements.txt && python app.py
+web: gunicorn app:app
+
 
 

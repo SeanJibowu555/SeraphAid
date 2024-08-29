@@ -11,7 +11,7 @@ import requests
 app = Flask(__name__)
 
 # URL to your model file on Google Drive
-MODEL_URL = "https://github.com/SeanJibowu555/large-files-repo/raw/main/facialemotionmodel.h5"
+MODEL_URL = "https://github.com/SeanJibowu555/SeraphAid/raw/main/facialemotionmodel.h5"
 MODEL_PATH = 'facialemotionmodel.h5'
 
 def download_file(url, destination):
