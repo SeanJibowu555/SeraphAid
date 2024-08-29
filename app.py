@@ -60,5 +60,5 @@ def detect_emotion():
     return jsonify({'emotion': emotion})
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5001))  # Fallback to 5001 if PORT is not set
+    port = int(os.getenv('PORT', 10000))  # Fallback to 5001 if PORT is not set
     app.run(host='0.0.0.0', port=port, debug=True)
