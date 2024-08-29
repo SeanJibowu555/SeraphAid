@@ -38,7 +38,6 @@ def index():
 
 @app.route('/detect-emotion', methods=['POST'])
 def detect_emotion():
-    # Get the image from the POST request
     if 'frame' not in request.files:
         return jsonify({'error': 'No frame provided'}), 400
     
