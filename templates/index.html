@@ -7,19 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Hello World</h1>
-    <button id="analyseButton">Analyze</button>
-
+    <h1>I am Seraph - the mood seer</h1>
     <!-- Webcam box -->
     <div id="webcam-box">
         <video id="webcam" autoplay playsinline></video>
     </div>
-
-    <!-- Textual information box -->
-    <div id="info-box">
-        <p id="info-text">Click "Analyze" to detect mood.</p>
-    </div>
+    <!-- Text box for displaying analysis result -->
+    <div id="text-box" style="margin-top: 20px;"></div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
+

@@ -1,37 +1,47 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const video = document.getElementById('webcam');
-    const infoText = document.getElementById('info-text');
-    const analyzeButton = document.getElementById('analyseButton');
+// script.js
 
-    const constraints = {
-        video: {
-            facingMode: "user",
-            width: { ideal: 640 },
-            height: { ideal: 480 }
-        }
-    };
+const video = document.getElementById('webcam');
+const textBox = document.getElementById('text-box');
 
-    navigator.mediaDevices.getUserMedia(constraints)
-        .then((stream) => {
-            video.srcObject = stream;
-            infoText.textContent = "Webcam is active. Click Analyze to detect mood.";
-        })
-        .catch((err) => {
-            console.error('Error accessing the webcam:', err);
-            infoText.textContent = "Could not access the webcam. Please ensure you have granted permission.";
-        });
+// Start video stream
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => {
+    video.srcObject = stream;
+    video.play();
+    processVideo();
+  })
+  .catch(err => {
+    console.error("Error accessing the webcam: ", err);
+  });
 
-    analyzeButton.addEventListener('click', function() {
-        fetch('/analyze', {
-            method: 'POST'
-        })
-        .then(response => response.json())
-        .then(data => {
-            infoText.textContent = "Detected mood: " + data.mood;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            infoText.textContent = "Error analyzing mood.";
-        });
-    });
-});
+// Function to capture video frames and send them to the server
+function processVideo() {
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(blob => {
+      const formData = new FormData();
+      formData.append('image', blob, 'frame.jpg');
+
+      fetch('/analyze', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        textBox.textContent = `Emotion: ${data.emotion}`;
+      })
+      .catch(error => console.error('Error:', error));
+
+    }, 'image/jpeg');
+
+    // Process the next frame
+    setTimeout(processVideo, 1000); // Adjust interval as needed
+  } else {
+    // Retry after a short delay if video not ready
+    setTimeout(processVideo, 100);
+  }
+}
