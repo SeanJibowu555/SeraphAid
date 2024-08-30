@@ -8,10 +8,16 @@
 </head>
 <body>
     <h1>Hello World</h1>
-    <button id="analyseButton">Analyse</button>
+    <button id="analyseButton">Analyze</button>
+
     <!-- Webcam box -->
     <div id="webcam-box">
-        <video id="webcam" autoplay></video>
+        <video id="webcam" autoplay playsinline></video>
+    </div>
+
+    <!-- Textual information box -->
+    <div id="info-box">
+        <p id="info-text">Click "Analyze" to detect mood.</p>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>

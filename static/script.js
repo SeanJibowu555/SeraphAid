@@ -1,26 +1,37 @@
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
     const video = document.getElementById('webcam');
+    const infoText = document.getElementById('info-text');
+    const analyzeButton = document.getElementById('analyseButton');
 
-    try {
-        // Check if the device has front-facing or back-facing camera
-        const constraints = {
-            video: {
-                facingMode: "user", // "user" for front camera, "environment" for back camera
-                width: { ideal: 640 },
-                height: { ideal: 480 }
-            }
-        };
+    const constraints = {
+        video: {
+            facingMode: "user",
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+        }
+    };
 
-        // Try to access the webcam with the specified constraints
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then((stream) => {
+            video.srcObject = stream;
+            infoText.textContent = "Webcam is active. Click Analyze to detect mood.";
+        })
+        .catch((err) => {
+            console.error('Error accessing the webcam:', err);
+            infoText.textContent = "Could not access the webcam. Please ensure you have granted permission.";
+        });
 
-        // Set the video element's source to the webcam stream
-        video.srcObject = stream;
-
-        // Flip the video horizontally using CSS
-        video.style.transform = "scaleX(-1)";
-    } catch (err) {
-        console.error('Error accessing the webcam:', err);
-        alert('Could not access the webcam. Please ensure you have granted permission.');
-    }
+    analyzeButton.addEventListener('click', function() {
+        fetch('/analyze', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            infoText.textContent = "Detected mood: " + data.mood;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            infoText.textContent = "Error analyzing mood.";
+        });
+    });
 });
