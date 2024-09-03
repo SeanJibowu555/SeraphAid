@@ -1,35 +1,49 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
+from deepface import DeepFace
 import cv2
 import numpy as np
-from deepface import DeepFace
 
 app = Flask(__name__)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Load pre-trained models
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+# Dummy database
+known_faces = {}  # Populate with known face embeddings
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    if 'image' not in request.files:
-        return jsonify({'error': 'No image file provided'}), 400
-
     file = request.files['image']
     img = cv2.imdecode(np.frombuffer(file.read(), np.uint8), cv2.IMREAD_COLOR)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    if img is None:
-        return jsonify({'emotion': 'No face detected'}), 200
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+    people_count = len(faces)
+    emotions = []
+    identifications = []
 
-    try:
-        results = DeepFace.analyze(img, actions=['emotion'], enforce_detection=False)
-        emotion = results[0]['dominant_emotion']
+    for (x, y, w, h) in faces:
+        face = img[y:y+h, x:x+w]
+        analysis = DeepFace.analyze(face, actions=['emotion'])
 
-        return jsonify({'emotion': emotion}), 200
+        # Emotion
+        emotions.append(analysis['dominant_emotion'])
 
-    except Exception as e:
-        print("Error:", e)
-        return jsonify({'error': str(e)}), 500
+        # Identification
+        face_embedding = DeepFace.represent(face)
+        identified_person = identify_person(face_embedding, known_faces)
+        identifications.append(identified_person if identified_person else "Unknown")
 
-if __name__ == "__main__":
+    return jsonify({
+        'people_count': people_count,
+        'emotions': emotions,
+        'identifications': identifications
+    })
+
+def identify_person(face_embedding, known_faces):
+    # Compare the face_embedding to known_faces and return the closest match
+    # Implement face recognition logic
+    pass
+
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
-

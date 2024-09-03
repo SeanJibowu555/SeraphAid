@@ -1,32 +1,25 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const video = document.getElementById('webcam');
-    const textBox = document.getElementById('text-box');
+const video = document.getElementById('webcam');
 
-    // Get user media and display it on the video element
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            video.srcObject = stream;
-        })
-        .catch(err => {
-            console.error('Error accessing webcam: ', err);
-        });
+// Access the camera
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+        video.srcObject = stream;
+    })
+    .catch(err => {
+        console.error("Error accessing the camera: " + err);
+    });
 
-    // Function to capture an image from the video feed
-    function captureImage() {
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0);
+function analyzeFrame() {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        return canvas.toDataURL('image/jpeg');
-    }
-
-    // Function to send the image to the backend for analysis
-    function analyzeImage() {
-        const dataUrl = captureImage();
+    // Convert canvas to blob and send to backend
+    canvas.toBlob(blob => {
         const formData = new FormData();
-        formData.append('image', dataUrlToBlob(dataUrl), 'image.jpg');
+        formData.append('image', blob, 'frame.png');
 
         fetch('/analyze', {
             method: 'POST',
@@ -34,30 +27,15 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(response => response.json())
         .then(data => {
-            if (data.emotion) {
-                textBox.textContent = `Emotion: ${data.emotion}`;
-            } else {
-                textBox.textContent = 'Emotion: Undefined';
-            }
+            document.getElementById('people-count').innerText = `Number of People: ${data.people_count}`;
+            document.getElementById('emotion-results').innerText = `Emotions: ${data.emotions}`;
+            document.getElementById('identification-results').innerText = `Identifications: ${data.identifications}`;
         })
         .catch(error => {
-            console.error('Error:', error);
-            textBox.textContent = 'Error occurred';
+            console.error('Error analyzing frame:', error);
         });
-    }
+    });
+}
 
-    // Helper function to convert Data URL to Blob
-    function dataUrlToBlob(dataUrl) {
-        const [header, data] = dataUrl.split(',');
-        const mime = header.match(/:(.*?);/)[1];
-        const binary = atob(data);
-        const array = [];
-        for (let i = 0; i < binary.length; i++) {
-            array.push(binary.charCodeAt(i));
-        }
-        return new Blob([new Uint8Array(array)], { type: mime });
-    }
-
-    // Start analysis periodically
-    setInterval(analyzeImage, 5000); // Adjust the interval as needed
-});
+// Call the analyzeFrame function at regular intervals
+setInterval(analyzeFrame, 1000);  // every second
