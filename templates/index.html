@@ -3,19 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seraph Prototype</title>
+    <title>Seraph - Mood Seer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>I am Seraph - the mood seer</h1>
-    <!-- Webcam box -->
-    <div id="webcam-box">
-        <video id="webcam" autoplay playsinline></video>
+    <div class="container">
+        <header>
+            <h1>I am Seraph - The Mood Seer</h1>
+        </header>
+        <main>
+            <div id="webcam-box">
+                <video id="webcam" autoplay playsinline></video>
+            </div>
+            <div id="text-box" class="text-box">
+                <!-- Emotion result will be displayed here -->
+            </div>
+        </main>
     </div>
-    <!-- Text box for displaying analysis result -->
-    <div id="text-box" style="margin-top: 20px;"></div>
-
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
+
 
