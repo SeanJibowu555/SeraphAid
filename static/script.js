@@ -1,47 +1,63 @@
-// script.js
+document.addEventListener('DOMContentLoaded', () => {
+    const video = document.getElementById('webcam');
+    const textBox = document.getElementById('text-box');
 
-const video = document.getElementById('webcam');
-const textBox = document.getElementById('text-box');
+    // Get user media and display it on the video element
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            console.error('Error accessing webcam: ', err);
+        });
 
-// Start video stream
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => {
-    video.srcObject = stream;
-    video.play();
-    processVideo();
-  })
-  .catch(err => {
-    console.error("Error accessing the webcam: ", err);
-  });
+    // Function to capture an image from the video feed
+    function captureImage() {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0);
 
-// Function to capture video frames and send them to the server
-function processVideo() {
-  if (video.readyState === video.HAVE_ENOUGH_DATA) {
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const context = canvas.getContext('2d');
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob(blob => {
-      const formData = new FormData();
-      formData.append('image', blob, 'frame.jpg');
+        return canvas.toDataURL('image/jpeg');
+    }
 
-      fetch('/analyze', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        textBox.textContent = `Emotion: ${data.emotion}`;
-      })
-      .catch(error => console.error('Error:', error));
+    // Function to send the image to the backend for analysis
+    function analyzeImage() {
+        const dataUrl = captureImage();
+        const formData = new FormData();
+        formData.append('image', dataUrlToBlob(dataUrl), 'image.jpg');
 
-    }, 'image/jpeg');
+        fetch('/analyze', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.emotion) {
+                textBox.textContent = `Emotion: ${data.emotion}`;
+            } else {
+                textBox.textContent = 'Emotion: Undefined';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            textBox.textContent = 'Error occurred';
+        });
+    }
 
-    // Process the next frame
-    setTimeout(processVideo, 1000); // Adjust interval as needed
-  } else {
-    // Retry after a short delay if video not ready
-    setTimeout(processVideo, 100);
-  }
-}
+    // Helper function to convert Data URL to Blob
+    function dataUrlToBlob(dataUrl) {
+        const [header, data] = dataUrl.split(',');
+        const mime = header.match(/:(.*?);/)[1];
+        const binary = atob(data);
+        const array = [];
+        for (let i = 0; i < binary.length; i++) {
+            array.push(binary.charCodeAt(i));
+        }
+        return new Blob([new Uint8Array(array)], { type: mime });
+    }
+
+    // Start analysis periodically
+    setInterval(analyzeImage, 5000); // Adjust the interval as needed
+});
