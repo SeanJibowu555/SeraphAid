@@ -1,69 +1,50 @@
 // Wait until the page is fully loaded
-window.addEventListener('DOMContentLoaded', () => {
-    const video = document.getElementById('webcam');
-    const textBox = document.getElementById('text-box');
+const video = document.getElementById('webcam');
+const textBox = document.getElementById('text-box');
 
-    // Access webcam stream
-    function startWebcam() {
-        if (navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then((stream) => {
-                    video.srcObject = stream;
-                })
-                .catch((error) => {
-                    console.error('Webcam access error:', error);
-                    textBox.innerHTML = "Error accessing the webcam.";
-                });
+// Access the webcam
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then((stream) => {
+        video.srcObject = stream;
+    })
+    .catch((err) => {
+        console.error("Error accessing webcam: ", err);
+    });
+
+// Function to capture a frame from the webcam and send for emotion analysis
+function captureFrame() {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+
+    // Flip the image back horizontally (mirror fix)
+    ctx.translate(video.videoWidth, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+
+    return canvas.toDataURL('image/jpeg'); // Captured frame data
+}
+
+// Analyze the frame periodically
+setInterval(() => {
+    const imgData = captureFrame();
+    fetch('/analyze', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: imgData })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.emotion) {
+            textBox.innerText = `Detected emotion: ${data.emotion}`;
         } else {
-            textBox.innerHTML = "Webcam not supported in this browser.";
+            textBox.innerText = 'Error analyzing emotion';
         }
-    }
-
-    // Capture a frame from the video stream and send it for analysis
-    function captureFrame() {
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const context = canvas.getContext('2d');
-
-        // Flip the image horizontally (mirror effect)
-        context.translate(canvas.width, 0);
-        context.scale(-1, 1);
-
-        // Draw the flipped video frame
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Convert canvas image to blob and send to backend
-        canvas.toBlob((blob) => {
-            const formData = new FormData();
-            formData.append('image', blob, 'frame.jpg');
-
-            // Send frame to backend for analysis
-            fetch('/analyze', {
-                method: 'POST',
-                body: formData,
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.emotion) {
-                    textBox.innerHTML = `Detected Emotion: <strong>${data.emotion}</strong>`;
-                } else {
-                    textBox.innerHTML = "No emotion detected.";
-                }
-            })
-            .catch((error) => {
-                console.error('Error in emotion analysis:', error);
-                textBox.innerHTML = "Error analyzing emotion.";
-            });
-        }, 'image/jpeg');
-    }
-
-    // Continuously capture frames for analysis every 2 seconds
-    function startAnalyzing() {
-        setInterval(captureFrame, 2000); // Analyze every 2 seconds
-    }
-
-    // Initialize webcam and start capturing frames
-    startWebcam();
-    startAnalyzing();
-});
+    })
+    .catch(err => {
+        console.error("Error analyzing emotion: ", err);
+    });
+}, 5000); // Send frame every 5 seconds
