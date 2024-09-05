@@ -1,9 +1,10 @@
 Flask==2.2.2
 gunicorn==20.1.0
 Werkzeug==2.2.3
-tensorflow
+tensorflow==2.7.0
 opencv-python
 numpy
 pillow
 deepface
+tf-keras
 
