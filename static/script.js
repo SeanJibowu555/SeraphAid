@@ -25,6 +25,12 @@ window.addEventListener('DOMContentLoaded', () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const context = canvas.getContext('2d');
+
+        // Flip the image horizontally (mirror effect)
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
+
+        // Draw the flipped video frame
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
         // Convert canvas image to blob and send to backend
