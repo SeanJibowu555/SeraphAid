@@ -52,7 +52,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Analyze image every 5 seconds (adjust the interval as needed)
-    setInterval(captureAndAnalyze, 1500);
+    // Check the current page and set up analysis if on RT Emotion Detection page
+    if (document.body.classList.contains('emotion-detection')) {
+        // Analyze image every 5 seconds (adjust the interval as needed)
+        setInterval(captureAndAnalyze, 1500);
+    } else {
+        textBox.textContent = "RT Emotion Detection is not available on this page.";
+    }
 });
-
