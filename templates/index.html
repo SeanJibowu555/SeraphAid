@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Recognition and Emotion Detection</title>
+    <title>Seraph - Mood Seer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div id="app-container">
-        <h1>Real-time Face Recognition and Emotion Detection</h1>
-        <div id="camera-feed">
-            <video id="webcam" autoplay playsinline></video>
-        </div>
-        <div id="results">
-            <h2>Analysis</h2>
-            <p id="people-count">Number of People: 0</p>
-            <div id="emotion-results"></div>
-            <div id="identification-results"></div>
-        </div>
+    <div class="container">
+        <header>
+            <h1>Real-time emotion detection</h1>
+        </header>
+        <main>
+            <div id="webcam-box">
+                <video id="webcam" autoplay playsinline></video>
+            </div>
+            <div id="text-box" class="text-box">
+                <!-- Emotion result will be displayed here -->
+            </div>
+        </main>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
-
 
 
