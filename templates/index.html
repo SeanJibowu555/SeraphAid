@@ -2,26 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seraph - Mood Seer</title>
+    <title>Seraph</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Real-time emotion detection</h1>
+            <h1>Real-Time emotion detection</h1>
         </header>
         <main>
             <div id="webcam-box">
                 <video id="webcam" autoplay playsinline></video>
             </div>
-            <div id="text-box" class="text-box">
-                <!-- Emotion result will be displayed here -->
-            </div>
+            <!-- Display the emotion analysis result here -->
+            <div id="text-box" class="text-box"></div>
         </main>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
+
 
 

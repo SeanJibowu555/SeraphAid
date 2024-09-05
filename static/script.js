@@ -1,50 +1,58 @@
-// Wait until the page is fully loaded
-const video = document.getElementById('webcam');
-const textBox = document.getElementById('text-box');
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('webcam');
+    const textBox = document.getElementById('text-box');
 
-// Access the webcam
-navigator.mediaDevices.getUserMedia({ video: true })
-    .then((stream) => {
-        video.srcObject = stream;
-    })
-    .catch((err) => {
-        console.error("Error accessing webcam: ", err);
-    });
+    // Start video stream
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            video.srcObject = stream;
+            video.play();
+        })
+        .catch(function(err) {
+            console.error("Error accessing camera: ", err);
+            textBox.textContent = "Error accessing the webcam.";
+        });
 
-// Function to capture a frame from the webcam and send for emotion analysis
-function captureFrame() {
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
+    // Function to capture image and send it to the server
+    function captureAndAnalyze() {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
-    // Flip the image back horizontally (mirror fix)
-    ctx.translate(video.videoWidth, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+        const ctx = canvas.getContext('2d');
+        // Flip the canvas horizontally to get a mirror image
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    return canvas.toDataURL('image/jpeg'); // Captured frame data
-}
+        const imageData = canvas.toDataURL('image/jpeg');
+        const base64Image = imageData.split(',')[1];
 
-// Analyze the frame periodically
-setInterval(() => {
-    const imgData = captureFrame();
-    fetch('/analyze', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ image: imgData })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.emotion) {
-            textBox.innerText = `Detected emotion: ${data.emotion}`;
-        } else {
-            textBox.innerText = 'Error analyzing emotion';
-        }
-    })
-    .catch(err => {
-        console.error("Error analyzing emotion: ", err);
-    });
-}, 5000); // Send frame every 5 seconds
+        fetch('/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ image: base64Image })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error("Error analyzing emotion: ", data.error);
+                textBox.textContent = `Error: ${data.error}`;
+            } else {
+                console.log("Emotion analysis result: ", data);
+                const emotion = data[0].dominant_emotion;
+                textBox.textContent = `Detected Emotion: ${emotion}`;
+            }
+        })
+        .catch(error => {
+            console.error("Error in fetching result: ", error);
+            textBox.textContent = "Error analyzing emotion.";
+        });
+    }
+
+    // Analyze image every 5 seconds (adjust the interval as needed)
+    setInterval(captureAndAnalyze, 1500);
+});
+

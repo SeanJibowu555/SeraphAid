@@ -45,7 +45,7 @@ header h1 {
     height: auto;
     border: 1px solid #ddd;
     border-radius: 8px;
-    transform: scaleX(-1);
+    transform: scaleX(-1); /* Flip the video horizontally */
 }
 
 .text-box {
